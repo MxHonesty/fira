@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Verifier {
+  id           Int     @id @default(autoincrement())
+  name         String  @db.VarChar(255)
+  password     String  @db.VarChar(255)
+  reportedBugs Bug[]
+  creator      Manager @relation(fields: [creatorId], references: [id])
+  creatorId    Int
+}
+
+model Programmer {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(255)
+  password  String  @db.VarChar(255)
+  fixedBugs Bug[]
+  creator   Manager @relation(fields: [creatorId], references: [id])
+  creatorId Int
+}
+
+model Manager {
+  id                 Int          @id @default(autoincrement())
+  name               String       @db.VarChar(255)
+  password           String       @db.VarChar(255)
+  createdVerifiers   Verifier[]
+  createdProgrammers Programmer[]
+}
+
+model Bug {
+  id          Int         @id @default(autoincrement())
+  description String      @db.VarChar(255)
+  createdAt   DateTime    @default(now())
+  reporter    Verifier    @relation(fields: [reporterId], references: [id])
+  reporterId  Int
+  fixer       Programmer? @relation(fields: [fixerId], references: [id])
+  fixerId     Int?
+}
